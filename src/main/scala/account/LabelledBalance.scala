@@ -5,7 +5,7 @@ sealed trait LabelledBalance extends Product with Serializable {
 
   def naturalSide: Side
 
-  def empty = Balance(0)
+  def empty: Balance = Balance(0)
 
   case class Balance(balance: Money) {
     def naturalSide: Side = outer.naturalSide

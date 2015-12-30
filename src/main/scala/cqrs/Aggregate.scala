@@ -17,4 +17,3 @@ case class EventAggregate[A, C, M](
   changeEvents: Vector[M]
 ) extends Aggregate[A]
 
-

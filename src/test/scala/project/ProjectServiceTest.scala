@@ -3,7 +3,7 @@ package project
 import java.util.UUID
 
 import cqrs._
-import org.scalatest.{Matchers, FunSpec}
+import org.scalatest.{ Matchers, FunSpec }
 import repo._
 import util.ids._
 

@@ -6,7 +6,7 @@ import util.types._
 import scalaz.syntax.either._
 import scalaz.std.java.throwable._
 
-import scalaz.{Show, \/}
+import scalaz.{ Show, \/ }
 
 trait AggregateRepo[A, AA <: Aggregate[A]] {
   def getAggregate(id: Id[A]): Throwable \/ Option[AA]

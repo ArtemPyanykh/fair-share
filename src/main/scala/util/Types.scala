@@ -1,6 +1,6 @@
 package util
 
-import scalaz.{Kleisli, \/}
+import scalaz.{ Kleisli, \/ }
 
 trait Types {
   type Result[E, T] = E \/ T
@@ -9,9 +9,9 @@ trait Types {
 
   type CreateValidS[A] = Kleisli[ValidS, Unit, A]
 
-  def CreateValidS[A] = Kleisli[ValidS, Unit, A] _
+  def CreateValidS[A] = Kleisli[ValidS, Unit, A] _ // scalastyle:off
 
   type ChangeValidS[A] = Kleisli[ValidS, A, A]
 
-  def ChangeValidS[A] = Kleisli[ValidS, A, A] _
+  def ChangeValidS[A] = Kleisli[ValidS, A, A] _ // scalastyle:off
 }

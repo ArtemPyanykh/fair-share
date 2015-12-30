@@ -1,6 +1,6 @@
 package project
 
-import cqrs.{Aggregate, Version}
+import cqrs.{ Aggregate, Version }
 import repo.AggregateRepo
 import util.ids._
 import util.types._

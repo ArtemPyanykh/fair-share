@@ -15,7 +15,7 @@ object Entity {
     def id: Id[A] = entity.id(a)
   }
 
-  object syntax {
+  object syntax { // scalastyle:ignore
     implicit def toEntityOps[A](a: A)(implicit e: Entity[A]): EntityOps[A] = new EntityOps[A](a)
   }
 

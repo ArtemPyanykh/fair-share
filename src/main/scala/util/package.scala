@@ -1,7 +1,7 @@
 package object util {
 
-  object ids extends Ids
+  object ids extends Ids // scalastyle:off
 
-  object types extends Types
+  object types extends Types // scalastyle:off
 
 }

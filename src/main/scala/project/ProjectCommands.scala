@@ -1,6 +1,6 @@
 package project
 
-import cqrs.{EventAggregate, Version}
+import cqrs.{ EventAggregate, Version }
 import util.ids._
 import util.types._
 
@@ -50,7 +50,7 @@ object ProjectCommandsInterpreter {
     }
   }
 
-  object validations {
+  object validations { // scalastyle:ignore
     def validateName(name: String): ValidS[String] = if (name.length > 0) {
       name.right
     } else {
@@ -60,10 +60,12 @@ object ProjectCommandsInterpreter {
     def validateStatus(oldStatus: ProjectStatus, newStatus: ProjectStatus): ValidS[ProjectStatus] = {
       import ProjectStatus._
       val validTransitions = List(Open -> ProjectStatus.Finished, Open -> Removed, Removed -> Open, Finished -> Open)
-      if (validTransitions.contains(
-        oldStatus -> newStatus
-      )) newStatus.right
-      else s"Cannot transition to specified status".left
+
+      if (validTransitions.contains(oldStatus -> newStatus)) {
+        newStatus.right
+      } else {
+        s"Cannot transition to specified status".left
+      }
     }
   }
 

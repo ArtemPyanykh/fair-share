@@ -21,6 +21,6 @@ object ProjectStatus {
 
 }
 
-object Project extends ProjectEventHandlers {
+object Project {
   implicit val entity = Entity[Project](_.id)
 }
