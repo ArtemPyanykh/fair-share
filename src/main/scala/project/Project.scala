@@ -1,15 +1,12 @@
 package project
 
-import aggregate._
-import monocle.macros.GenLens
-import util._
+import cqrs.Entity
+import util.ids._
 
 case class Project(
   id: ProjectId,
   name: String,
-  status: ProjectStatus,
-  version: Version,
-  uncommittedEvents: Vector[EventXor[Project, ProjectCreated, ProjectChanged]] = Vector.empty
+  status: ProjectStatus
 )
 
 sealed trait ProjectStatus extends Product with Serializable
@@ -24,10 +21,6 @@ object ProjectStatus {
 
 }
 
-object Project extends Handlers {
-  implicit val agg: Aggregate[Project] = Aggregate(GenLens[Project](_.id), GenLens[Project](_.version), "project")
-
-  implicit val es: EventSourced[Project, ProjectCreated, ProjectChanged] = EventSourced(
-    GenLens[Project](_.uncommittedEvents)
-  )
+object Project extends ProjectEventHandlers {
+  implicit val entity = Entity[Project](_.id)
 }
