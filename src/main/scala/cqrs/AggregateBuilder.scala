@@ -14,9 +14,9 @@ class AggregateBuilder[A, C: EventC[A, ?], M: EventM[A, ?]] {
   }
 
   def foldAggregate(events: Events[C, M]): Aggregate[A, C, M] = {
-    val data = foldModel(events.creation, events.modifications)
+    val data = foldModel(events.creation.event, events.modifications.map(_.event))
     val version = Version(events.modifications.length + 1) // # of change events + creation event
-    Aggregate(version, data, events)
+    Aggregate(version, version, data, events)
   }
 }
 

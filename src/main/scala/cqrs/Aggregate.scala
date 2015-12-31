@@ -1,7 +1,8 @@
 package cqrs
 
 case class Aggregate[A, C, M](
-  version: Version,
+  persistedVersion: Version,
+  currentVersion: Version,
   model: A,
   events: Events[C, M]
 )

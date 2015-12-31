@@ -1,32 +1,51 @@
 package repo
 
-import cqrs.EventData
-import util.Id
-
 import scala.collection.mutable
 import scalaz.\/
 import scalaz.syntax.either._
 
-class InMemoryEventRepo[A, C, M] extends EventRepo[A, C, M] {
-  val inMemoryCStore = mutable.Map[Id[A], EventData[C]]()
-  val inMemoryMStore = mutable.Map[Id[A], Vector[EventData[M]]]()
+class InMemoryEventRepo extends UntypedEventRepo {
+  type Tag = String
+  type Id = String
+  type EventStream = Vector[UntypedEventData]
 
-  def getAll(id: Id[A]): (Throwable \/ (Option[EventData[C]], Vector[EventData[M]])) = {
-    val cEvent = inMemoryCStore.get(id)
-    val mEvents = inMemoryMStore.getOrElse(id, Vector.empty)
+  val inMemoryStore = mutable.Map[Tag, mutable.Map[Id, EventStream]]()
 
-    (cEvent, mEvents).right
+  def store(data: Vector[UntypedEventData]): Throwable \/ Unit = inMemoryStore.synchronized {
+    val headOpt = data.headOption
+
+    headOpt match {
+      case None => ().right[Throwable]
+      case Some(datum) => {
+        storeSingle(datum).fold(
+          err => err.left,
+          _ => store(data.tail)
+        )
+      }
+    }
   }
 
-  def storeAll(id: Id[A], c: EventData[C], ms: Vector[EventData[M]]): (Throwable \/ Unit) = inMemoryCStore.synchronized {
-    inMemoryCStore += (id -> c)
-    storeAll(id, ms)
-    ().right
+  def get(tag: String, id: String): Throwable \/ Vector[UntypedEventData] = {
+    inMemoryStore.getOrElse(tag, mutable.Map[Id, EventStream]()).getOrElse(id, Vector.empty).right
   }
 
-  def storeAll(id: Id[A], ms: Vector[EventData[M]]): (Throwable \/ Unit) = inMemoryMStore.synchronized {
-    val events = inMemoryMStore.getOrElse(id, Vector.empty) ++ ms
-    inMemoryMStore += (id -> events)
-    ().right
+  private def storeSingle(data: UntypedEventData): Throwable \/ Unit = {
+    val tag = data.aggregateTag
+    val id = data.aggregateId
+    val forAggregate = inMemoryStore.getOrElse(tag, mutable.Map[Id, EventStream]())
+    val existing = forAggregate.getOrElse(id, Vector.empty)
+
+    if (versionExists(existing, data.aggregateVersion)) {
+      new RuntimeException(
+        s"Uniqueness violation: version ${data.aggregateVersion} of aggregate ${data.aggregateTag} already exists."
+      ).left
+    } else {
+      forAggregate += (id -> (existing :+ data))
+      inMemoryStore += (tag -> forAggregate)
+      ().right
+    }
   }
+
+  private def versionExists(data: Vector[UntypedEventData], version: Int): Boolean =
+    data.exists(_.aggregateVersion == version)
 }

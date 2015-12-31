@@ -11,7 +11,7 @@ object ProjectCreated {
   }
 
   implicit val tag: Tagged[ProjectCreated] = new Tagged[ProjectCreated] {
-    def tag(a: ProjectCreated): String = "project-created"
+    def tag(a: ProjectCreated): String = "ProjectCreated"
   }
 }
 

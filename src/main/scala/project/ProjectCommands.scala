@@ -6,7 +6,7 @@ import util.types._
 
 import scalaz.syntax.either._
 
-trait ProjectCommands[ProjectAggregate] {
+trait ProjectCommands {
   def create(id: ProjectId, name: String): CreateValidS[ProjectAggregate]
 
   def modifyName(name: String): ChangeValidS[ProjectAggregate]
@@ -17,15 +17,13 @@ trait ProjectCommands[ProjectAggregate] {
 }
 
 object ProjectCommandsInterpreter {
-  type ProjectAggregate = Aggregate[Project, ProjectCreated, ProjectModified]
-
   import cqrs.AggregateCommand
   import validations._
 
   val projectCreate = AggregateCommand[Project, ProjectCreated, ProjectModified].create _
   val projectChange = AggregateCommand[Project, ProjectCreated, ProjectModified].modify _
 
-  object EventSourcedProjectCommands extends ProjectCommands[ProjectAggregate] {
+  object EventSourcedProjectCommands extends ProjectCommands {
     def create(id: ProjectId, name: String): CreateValidS[ProjectAggregate] = CreateValidS[ProjectAggregate] { _: Unit =>
       for {
         name <- validateName(name)
@@ -40,7 +38,7 @@ object ProjectCommandsInterpreter {
     }
 
     def checkAgainstVersion(version: Version): ChangeValidS[ProjectAggregate] = ChangeValidS[ProjectAggregate] { pa =>
-      if (version == pa.version) pa.right else s"Project version mismatch. Expected ${pa.version}, actual $version".left
+      if (version == pa.currentVersion) pa.right else s"Project version mismatch. Expected ${pa.currentVersion}, actual $version".left
     }
 
     def modifyName(name: String): ChangeValidS[ProjectAggregate] = ChangeValidS[ProjectAggregate] { pa =>
