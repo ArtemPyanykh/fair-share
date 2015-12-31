@@ -1,6 +1,7 @@
 package project
 
-import cqrs.Entity
+import cqrs.typeclass.Entity
+import util.Id
 import util.ids._
 
 case class Project(
@@ -22,5 +23,8 @@ object ProjectStatus {
 }
 
 object Project {
-  implicit val entity = Entity[Project](_.id)
+  implicit val entity: Entity[Project] = new Entity[Project] {
+    def id(a: Project): Id[Project] = a.id
+  }
 }
+

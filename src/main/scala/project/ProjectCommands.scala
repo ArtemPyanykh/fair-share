@@ -1,6 +1,6 @@
 package project
 
-import cqrs.{ EventAggregate, Version }
+import cqrs._
 import util.ids._
 import util.types._
 
@@ -9,21 +9,21 @@ import scalaz.syntax.either._
 trait ProjectCommands[ProjectAggregate] {
   def create(id: ProjectId, name: String): CreateValidS[ProjectAggregate]
 
-  def changeName(name: String): ChangeValidS[ProjectAggregate]
+  def modifyName(name: String): ChangeValidS[ProjectAggregate]
 
-  def changeStatus(status: ProjectStatus): ChangeValidS[ProjectAggregate]
+  def modifyStatus(status: ProjectStatus): ChangeValidS[ProjectAggregate]
 
   def checkAgainstVersion(version: Version): ChangeValidS[ProjectAggregate]
 }
 
 object ProjectCommandsInterpreter {
-  type ProjectAggregate = EventAggregate[Project, ProjectCreated, ProjectChanged]
+  type ProjectAggregate = Aggregate[Project, ProjectCreated, ProjectModified]
 
-  import cqrs.EventSourcedCommands
+  import cqrs.AggregateCommand
   import validations._
 
-  val projectCreate = EventSourcedCommands.create[Project, ProjectCreated, ProjectChanged] _
-  val projectChange = EventSourcedCommands.change[Project, ProjectCreated, ProjectChanged] _
+  val projectCreate = AggregateCommand[Project, ProjectCreated, ProjectModified].create _
+  val projectChange = AggregateCommand[Project, ProjectCreated, ProjectModified].modify _
 
   object EventSourcedProjectCommands extends ProjectCommands[ProjectAggregate] {
     def create(id: ProjectId, name: String): CreateValidS[ProjectAggregate] = CreateValidS[ProjectAggregate] { _: Unit =>
@@ -32,21 +32,21 @@ object ProjectCommandsInterpreter {
       } yield projectCreate(ProjectCreated(id, name))
     }
 
-    def changeStatus(status: ProjectStatus): ChangeValidS[ProjectAggregate] = ChangeValidS[ProjectAggregate] { pa =>
+    def modifyStatus(status: ProjectStatus): ChangeValidS[ProjectAggregate] = ChangeValidS[ProjectAggregate] { pa =>
       val project = pa.model
       for {
         status <- validateStatus(project.status, status)
-      } yield projectChange(pa, ProjectStatusChanged(status))
+      } yield projectChange(pa, ProjectStatusModified(status))
     }
 
     def checkAgainstVersion(version: Version): ChangeValidS[ProjectAggregate] = ChangeValidS[ProjectAggregate] { pa =>
       if (version == pa.version) pa.right else s"Project version mismatch. Expected ${pa.version}, actual $version".left
     }
 
-    def changeName(name: String): ChangeValidS[ProjectAggregate] = ChangeValidS[ProjectAggregate] { pa =>
+    def modifyName(name: String): ChangeValidS[ProjectAggregate] = ChangeValidS[ProjectAggregate] { pa =>
       for {
         name <- validateName(name)
-      } yield projectChange(pa, ProjectNameChanged(name))
+      } yield projectChange(pa, ProjectNameModified(name))
     }
   }
 

@@ -1,39 +1,32 @@
 package repo
 
-import cqrs.Entity.syntax._
 import cqrs._
+import cqrs.typeclass._
 import util.Id
+import util.types._
+import scalaz.std.java.throwable._
+import cqrs.typeclass.Tagged.ops._
+import scalaz.syntax.either._
 
-import scalaz.\/
+import scalaz.Show
 
-class EventAggregateRepo[A: Entity, C <: CreationEvent[A], M <: ChangeEvent[A]](eventRepo: EventRepo[Id[A], C, M])
-    extends AggregateRepo[A, EventAggregate[A, C, M]] {
-  def getAggregate(id: Id[A]): Throwable \/ Option[EventAggregate[A, C, M]] = for {
-    events <- eventRepo.getAll(id)
-    (creationOpt, changes) = events
-  } yield {
-    for {
-      creation <- creationOpt
-    } yield EventSourcedBuilder.foldAggregate[A, C, M](creation.event, changes.map(_.event))
+class EventAggregateRepo[A: Entity, C: EventC[A, ?]: StringCodec, M: EventM[A, ?]: StringCodec](
+    eventRepo: EventRepo[Id[A], C, M]
+)(implicit idTagged: Tagged[Id[A]]) {
+  def getAggregate(id: Id[A]): ValidS[Aggregate[A, C, M]] = {
+    val fromRepo = eventRepo.getAll(id)
+
+    fromRepo.fold(
+      Show[Throwable].shows(_).left,
+      {
+        case None => s"Aggregate ${id.tag} with id ${id.id.toString} not found.".left
+        case Some(data) =>
+          val events = data.mapCM(_.event, _.event)
+          AggregateBuilder[A, C, M].foldAggregate(events).right
+      }
+    )
   }
 
-  def storeAggregate(a: EventAggregate[A, C, M]): (Throwable \/ Unit) = {
-    val (startingVersion, toPersistCreation) = if (a.version.isZero) {
-      (Version.one, Some(EventData.now(a.model.id, Version.one, a.creationEvent)))
-    } else {
-      (a.version, None)
-    }
+  def storeAggregate(a: Aggregate[A, C, M]): ValidS[Unit] = ???
 
-    val numPersistedChanges = List(startingVersion.v - 2, 0).max
-
-    val toPersistChanges = a.changeEvents.drop(numPersistedChanges).zipWithIndex.map {
-      case (ev, idx) =>
-        EventData.now(a.model.id, Version(numPersistedChanges + idx), ev)
-    }
-
-    toPersistCreation match {
-      case Some(creation) => eventRepo.storeAll(a.model.id, creation, toPersistChanges)
-      case None => eventRepo.storeAll(a.model.id, toPersistChanges)
-    }
-  }
 }

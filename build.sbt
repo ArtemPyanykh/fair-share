@@ -2,11 +2,13 @@ import scalariform.formatter.preferences._
 
 import Dependencies._
 
+resolvers += Resolver.sonatypeRepo("releases")
+
 name := """fair-share"""
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -16,7 +18,7 @@ scalacOptions ++= Seq(
   "-language:higherKinds",
   "-language:implicitConversions",
   "-unchecked",
-//  "-Xfatal-warnings",
+  "-Xfatal-warnings",
   "-Xlint",
   "-Yno-adapted-args",
   "-Ywarn-dead-code", // N.B. doesn't work well with the ??? hole
@@ -25,8 +27,12 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1")
+
 libraryDependencies ++= List(
-  scalazDeps, monocleDeps, scalatestDeps
+  scalazDeps, scalatestDeps, simulacrumDeps, argonautDeps
 ).flatten
 
 scalariformSettings

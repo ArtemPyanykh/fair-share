@@ -1,19 +1,38 @@
 package project
 
-import cqrs.{ ChangeEvent, CreationEvent, ChangeHandler, CreationHandler }
+import cqrs.typeclass.{ Tagged, EventM, EventC }
 import util.ids._
 
-case class ProjectCreated(id: ProjectId, name: String) extends CreationEvent[Project] {
-  def run: Project = Project(id = id, name = name, status = ProjectStatus.Open)
-}
+case class ProjectCreated(id: ProjectId, name: String)
 
-sealed trait ProjectChanged extends ChangeEvent[Project] {
-  def run(model: Project): Project = this match {
-    case ProjectNameChanged(name) => model.copy(name = name)
-    case ProjectStatusChanged(status) => model.copy(status = status)
+object ProjectCreated {
+  implicit val eventC: EventC[Project, ProjectCreated] = EventC {
+    case ProjectCreated(id, name) => Project(id = id, name = name, ProjectStatus.Open)
+  }
+
+  implicit val tag: Tagged[ProjectCreated] = new Tagged[ProjectCreated] {
+    def tag(a: ProjectCreated): String = "project-created"
   }
 }
 
-case class ProjectNameChanged(name: String) extends ProjectChanged
+sealed trait ProjectModified
 
-case class ProjectStatusChanged(status: ProjectStatus) extends ProjectChanged
+case class ProjectNameModified(name: String) extends ProjectModified
+
+case class ProjectStatusModified(status: ProjectStatus) extends ProjectModified
+
+object ProjectModified {
+  implicit val eventM: EventM[Project, ProjectModified] = EventM { model =>
+    {
+      case ProjectNameModified(name) => model.copy(name = name)
+      case ProjectStatusModified(status) => model.copy(status = status)
+    }
+  }
+
+  implicit val tag: Tagged[ProjectModified] = new Tagged[ProjectModified] {
+    def tag(a: ProjectModified): String = a match {
+      case x @ ProjectNameModified(_) => "ProjectNameModified"
+      case x @ ProjectStatusModified(_) => "ProjectStatusModified"
+    }
+  }
+}

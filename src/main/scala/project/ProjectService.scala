@@ -8,9 +8,9 @@ import util.types._
 import scalaz.Reader
 import scalaz.syntax.either._
 
-trait ProjectService[AA <: Aggregate[Project]] {
-  val commands: ProjectCommands[AA]
-  type ProjectRepo = AggregateRepo[Project, AA]
+trait ProjectService {
+  val commands: ProjectCommands[Aggregate[Project, ProjectCreated, ProjectModified]]
+  type ProjectRepo = AggregateRepo[Project, Aggregate[?, ProjectCreated, ProjectModified]]
 
   def create(id: ProjectId, name: String): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
     repo.getAggregateV(id).swap.fold(
@@ -26,18 +26,18 @@ trait ProjectService[AA <: Aggregate[Project]] {
     )
   }
 
-  def changeName(id: ProjectId, name: String, version: Version): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
+  def modifyName(id: ProjectId, name: String, version: Version): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
     for {
       project <- repo.getAggregateV(id)
-      changed <- (commands.checkAgainstVersion(version) andThen commands.changeName(name)).run(project)
+      changed <- (commands.checkAgainstVersion(version) andThen commands.modifyName(name)).run(project)
       toRepo <- repo.storeAggregateV(changed)
     } yield toRepo
   }
 
-  def changeStatus(id: ProjectId, status: ProjectStatus, version: Version): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
+  def modifyStatus(id: ProjectId, status: ProjectStatus, version: Version): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
     for {
       project <- repo.getAggregateV(id)
-      changed <- (commands.checkAgainstVersion(version) andThen commands.changeStatus(status)).run(project)
+      changed <- (commands.checkAgainstVersion(version) andThen commands.modifyStatus(status)).run(project)
       toRepo <- repo.storeAggregateV(changed)
     } yield toRepo
   }
