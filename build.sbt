@@ -2,7 +2,10 @@ import scalariform.formatter.preferences._
 
 import Dependencies._
 
-resolvers += Resolver.sonatypeRepo("releases")
+resolvers ++= List(
+  Resolver.sonatypeRepo("releases"),
+  Resolver.sonatypeRepo("snapshots")
+)
 
 name := """fair-share"""
 

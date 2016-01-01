@@ -1,11 +1,15 @@
 package project
 
-import cqrs.typeclass.{ Tagged, EventM, EventC }
+import cqrs.typeclass._
 import util.ids._
+import util.types._
+import argonaut._
+import Argonaut._
+import util.json._
 
 case class ProjectCreated(id: ProjectId, name: String)
 
-object ProjectCreated {
+object ProjectCreated extends ProjectCreatedCodecs {
   implicit val eventC: EventC[Project, ProjectCreated] = EventC {
     case ProjectCreated(id, name) => Project(id = id, name = name, ProjectStatus.Open)
   }
@@ -21,7 +25,7 @@ case class ProjectNameModified(name: String) extends ProjectModified
 
 case class ProjectStatusModified(status: ProjectStatus) extends ProjectModified
 
-object ProjectModified {
+object ProjectModified extends ProjectModifiedCodecs {
   implicit val eventM: EventM[Project, ProjectModified] = EventM { model =>
     {
       case ProjectNameModified(name) => model.copy(name = name)

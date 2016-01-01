@@ -4,4 +4,8 @@ package object util {
 
   object types extends Types // scalastyle:off
 
+  object json extends JsonHelpers // scalastyle:off
+
+  object codecs extends StringCodecHelpers // scalastyle:off
+
 }

@@ -6,6 +6,7 @@ import cqrs._
 import cqrs.typeclass.StringCodec.ops._
 import cqrs.typeclass.Tagged.ops._
 import cqrs.typeclass.{ StringCodec, Tagged }
+import util.types._
 
 case class UntypedEventData(
   aggregateTag: String,
@@ -34,14 +35,15 @@ object UntypedEventData {
     )
   }
 
-  def toEventData[K: StringCodec, E: StringCodec](raw: UntypedEventData): (K, EventData[E]) = {
+  def toEventData[K: StringCodec, E: StringCodec](raw: UntypedEventData): ValidS[(K, EventData[E])] = {
     val keyCodec = implicitly[StringCodec[K]]
     val eventCoded = implicitly[StringCodec[E]]
 
-    val id = keyCodec.decode(raw.aggregateId)
-    val event = eventCoded.decode(raw.eventData)
     val version = Version(raw.aggregateVersion)
 
-    (id, EventData(version, event, raw.createdAt))
+    for {
+      id <- keyCodec.decode(raw.aggregateId)
+      event <- eventCoded.decode(raw.eventData)
+    } yield (id, EventData(version, event, raw.createdAt))
   }
 }

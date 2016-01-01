@@ -21,8 +21,15 @@ class GeneralEventRepo[K: StringCodec: Tagged, C: StringCodec: Tagged, M: String
         creation <- untypedData.headOption
         modification = untypedData.tail
       } yield {
-        val typedCreation = UntypedEventData.toEventData[K, C](creation)._2
-        val typedModifications = modification.map(e => UntypedEventData.toEventData[K, M](e)._2)
+        val typedCreation = UntypedEventData.toEventData[K, C](creation).fold(
+          sys.error,
+          _._2
+        )
+        val typedModifications = modification.map(e => UntypedEventData.toEventData[K, M](e).fold(
+          sys.error,
+          _._2
+        ))
+
         Events(typedCreation, typedModifications)
       }
     }
