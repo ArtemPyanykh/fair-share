@@ -2,48 +2,43 @@ package repo
 
 import java.time.LocalDateTime
 
-import cqrs._
-import cqrs.typeclass.StringCodec.ops._
-import cqrs.typeclass.Tagged.ops._
-import cqrs.typeclass.{ StringCodec, Tagged }
+import argonaut.Argonaut._
+import argonaut.CodecJson
+import es._
+import es.typeclass.Tag
+import es.typeclass.Tag.ops._
 import util.types._
 
 case class UntypedEventData(
   aggregateTag: String,
   aggregateId: String,
   aggregateVersion: Int,
-  eventTag: String,
   eventData: String,
   createdAt: LocalDateTime
 )
 
 object UntypedEventData {
-  def fromEventData[K: StringCodec: Tagged, E: StringCodec: Tagged](id: K, data: EventData[E]): UntypedEventData = {
+  def fromEventData[K: CodecJson: Tag, E: CodecJson](id: K, data: EventData[E]): UntypedEventData = {
     val aggregateTag = id.tag
-    val aggregateId = id.encode
+    val aggregateId = id.asJson.nospaces
 
-    val eventTag = data.event.tag
-    val eventData = data.event.encode
+    val eventData = data.event.asJson.nospaces
 
     UntypedEventData(
       aggregateTag,
       aggregateId,
       data.version.value,
-      eventTag,
       eventData,
       data.createdAt
     )
   }
 
-  def toEventData[K: StringCodec, E: StringCodec](raw: UntypedEventData): ValidS[(K, EventData[E])] = {
-    val keyCodec = implicitly[StringCodec[K]]
-    val eventCoded = implicitly[StringCodec[E]]
-
+  def toEventData[K: CodecJson, E: CodecJson](raw: UntypedEventData): ValidS[(K, EventData[E])] = {
     val version = Version(raw.aggregateVersion)
 
     for {
-      id <- keyCodec.decode(raw.aggregateId)
-      event <- eventCoded.decode(raw.eventData)
+      id <- raw.aggregateId.decodeEither[K]
+      event <- raw.eventData.decodeEither[E]
     } yield (id, EventData(version, event, raw.createdAt))
   }
 }

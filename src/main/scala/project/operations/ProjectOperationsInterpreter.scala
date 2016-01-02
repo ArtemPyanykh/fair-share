@@ -1,29 +1,23 @@
-package project
+package project.operations
 
-import cqrs._
-import util.ids._
+import es.Version
+import project.ProjectAggregate
+import project.events._
+import project.model.{ ProjectStatus, Project }
+
 import util.types._
-
+import util.ids._
 import scalaz.syntax.either._
+import es.AggregateCommand
+import project.model.ProjectStatus._
 
-trait ProjectCommands {
-  def create(id: ProjectId, name: String): CreateValidS[ProjectAggregate]
-
-  def modifyName(name: String): ChangeValidS[ProjectAggregate]
-
-  def modifyStatus(status: ProjectStatus): ChangeValidS[ProjectAggregate]
-
-  def checkAgainstVersion(version: Version): ChangeValidS[ProjectAggregate]
-}
-
-object ProjectCommandsInterpreter {
-  import cqrs.AggregateCommand
+object ProjectOperationsInterpreter {
   import validations._
 
   val projectCreate = AggregateCommand[Project, ProjectCreated, ProjectModified].create _
   val projectChange = AggregateCommand[Project, ProjectCreated, ProjectModified].modify _
 
-  object EventSourcedProjectCommands extends ProjectCommands {
+  object ProjectOperations extends ProjectOperations {
     def create(id: ProjectId, name: String): CreateValidS[ProjectAggregate] = CreateValidS[ProjectAggregate] { _: Unit =>
       for {
         name <- validateName(name)
@@ -56,7 +50,6 @@ object ProjectCommandsInterpreter {
     }
 
     def validateStatus(oldStatus: ProjectStatus, newStatus: ProjectStatus): ValidS[ProjectStatus] = {
-      import ProjectStatus._
       val validTransitions = List(Open -> ProjectStatus.Finished, Open -> Removed, Removed -> Open, Finished -> Open)
 
       if (validTransitions.contains(oldStatus -> newStatus)) {
@@ -68,4 +61,3 @@ object ProjectCommandsInterpreter {
   }
 
 }
-

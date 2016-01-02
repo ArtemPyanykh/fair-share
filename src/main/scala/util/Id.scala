@@ -4,10 +4,6 @@ import java.util.UUID
 
 import argonaut.Argonaut._
 import argonaut._
-import cqrs.typeclass.{ StringCodec, Tagged }
-import util.types._
-
-import scala.reflect.ClassTag
 
 trait Id[T] {
   def id: UUID
@@ -25,17 +21,10 @@ object Id {
     def id = anId
   }
 
-  implicit def jsonEncode[T]: EncodeJson[Id[T]] = jencode1[Id[T], String](_.id.toString)
-  implicit def jsonDecode[T]: DecodeJson[Id[T]] = jdecode1[String, Id[T]](s => Id[T](UUID.fromString(s)))
+  implicit def encodeJson[T]: EncodeJson[Id[T]] = EncodeJson.of[String].contramap(_.id.toString)
 
-  implicit def stringCodec[T]: StringCodec[Id[T]] = new StringCodec[Id[T]] {
-    def encode(e: Id[T]): String = e.asJson.nospaces
+  implicit def decodeJson[T]: DecodeJson[Id[T]] = DecodeJson.of[String].map(s => Id[T](UUID.fromString(s)))
 
-    def decode(string: String): ValidS[Id[T]] = string.decodeEither[Id[T]]
-  }
-
-  implicit def tagged[T](implicit ct: ClassTag[T]): Tagged[Id[T]] = new Tagged[Id[T]] {
-    def tag(a: Id[T]): String = ct.getClass.getName
-  }
+  implicit def jsonCodec[T]: CodecJson[Id[T]] = CodecJson.derived[Id[T]](encodeJson, decodeJson)
 }
 

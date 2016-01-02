@@ -1,4 +1,4 @@
-package cqrs
+package es
 
 import java.time.LocalDateTime
 

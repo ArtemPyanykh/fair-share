@@ -1,6 +1,8 @@
 package project
 
-import cqrs.Version
+import es.Version
+import project.model.ProjectStatus
+import project.operations.ProjectOperations
 import util.ids._
 import util.types._
 
@@ -8,7 +10,7 @@ import scalaz.Reader
 import scalaz.syntax.either._
 
 trait ProjectService {
-  val commands: ProjectCommands
+  val commands: ProjectOperations
 
   def create(id: ProjectId, name: String): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
     repo.get(id).swap.fold(

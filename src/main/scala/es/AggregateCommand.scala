@@ -1,6 +1,6 @@
-package cqrs
+package es
 
-import cqrs.typeclass.{ EventM, EventC }
+import es.typeclass.{ EventM, EventC }
 import EventC.syntax._
 import EventM.syntax._
 

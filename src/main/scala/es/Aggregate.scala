@@ -1,4 +1,4 @@
-package cqrs
+package es
 
 case class Aggregate[A, C, M](
   persistedVersion: Version,

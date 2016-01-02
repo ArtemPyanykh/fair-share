@@ -4,15 +4,17 @@ import argonaut._
 import argonaut.Argonaut._
 
 trait JsonHelpers {
-  def taggedEncode[A](tag: String)(encode: EncodeJson[A]): EncodeJson[A] = EncodeJson[A] {
-    obj => Json(tag := encode.encode(obj))
+  def taggedEncode[A](tag: String)(f: A => Json): EncodeJson[A] = EncodeJson[A] {
+    obj => Json(tag := f(obj))
   }
 
-  def taggedDecode[A](tag: String)(decode: DecodeJson[A]): DecodeJson[A] = DecodeJson {
+  def taggedJson(tag: String)(json: Json): Json = Json(tag := json)
+
+  def taggedDecode[A](tag: String)(f: HCursor => DecodeResult[A]): DecodeJson[A] = DecodeJson {
     cursorOuter =>
       (cursorOuter --\ tag).hcursor match {
-        case None => DecodeResult.fail[A](s"Unexpected tag: $tag", cursorOuter.history)
-        case Some(cursorInner) => decode.decode(cursorInner)
+        case None => DecodeResult.fail[A](s"Specified tag $tag not found", cursorOuter.history)
+        case Some(cursorInner) => f(cursorInner)
       }
   }
 }

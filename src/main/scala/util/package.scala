@@ -6,6 +6,4 @@ package object util {
 
   object json extends JsonHelpers // scalastyle:off
 
-  object codecs extends StringCodecHelpers // scalastyle:off
-
 }

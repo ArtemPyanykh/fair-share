@@ -1,4 +1,4 @@
-package cqrs
+package es
 
 case class Version(value: Int) extends AnyVal with Ordered[Version] {
   def compare(that: Version): Int = this.value - that.value

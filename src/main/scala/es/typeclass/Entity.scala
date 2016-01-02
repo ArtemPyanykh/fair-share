@@ -1,4 +1,4 @@
-package cqrs.typeclass
+package es.typeclass
 
 import simulacrum._
 import util.Id

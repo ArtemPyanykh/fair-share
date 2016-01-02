@@ -19,7 +19,8 @@ object Dependencies {
   val argonautVersion = "6.1"
 
   val argonautDeps = List(
-    "io.argonaut" %% "argonaut" % argonautVersion
+    "io.argonaut" %% "argonaut" % argonautVersion,
+    "com.github.alexarchambault" %% s"argonaut-shapeless_$argonautVersion" % "1.0.0-SNAPSHOT"
   )
 
   val scalatestDeps = List(

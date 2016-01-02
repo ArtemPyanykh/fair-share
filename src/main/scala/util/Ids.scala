@@ -1,6 +1,6 @@
 package util
 
-import project.Project
+import project.model.Project
 
 trait Ids {
   type ProjectId = Id[Project]

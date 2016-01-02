@@ -11,7 +11,7 @@ class InMemoryEventRepo extends UntypedEventRepo {
 
   val inMemoryStore = mutable.Map[Tag, mutable.Map[Id, EventStream]]()
 
-  def store(data: Vector[UntypedEventData]): Throwable \/ Unit = inMemoryStore.synchronized {
+  def storeAll(data: Vector[UntypedEventData]): Throwable \/ Unit = inMemoryStore.synchronized {
     val headOpt = data.headOption
 
     headOpt match {
@@ -19,13 +19,13 @@ class InMemoryEventRepo extends UntypedEventRepo {
       case Some(datum) => {
         storeSingle(datum).fold(
           err => err.left,
-          _ => store(data.tail)
+          _ => storeAll(data.tail)
         )
       }
     }
   }
 
-  def get(tag: String, id: String): Throwable \/ Vector[UntypedEventData] = {
+  def getByKey(tag: String, id: String): Throwable \/ Vector[UntypedEventData] = {
     inMemoryStore.getOrElse(tag, mutable.Map[Id, EventStream]()).getOrElse(id, Vector.empty).right
   }
 

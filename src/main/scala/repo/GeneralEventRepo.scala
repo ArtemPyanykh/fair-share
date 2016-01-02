@@ -1,21 +1,22 @@
 package repo
 
-import cqrs.typeclass.StringCodec.ops._
-import cqrs.typeclass.Tagged.ops._
-import cqrs.typeclass.{ StringCodec, Tagged }
-import cqrs.{ Events, Version }
+import argonaut.CodecJson
+import es.typeclass.Tag.ops._
+import es.typeclass.Tag
+import es.{ Events, Version }
+import argonaut.Argonaut._
 
 import scalaz.\/
 
-class GeneralEventRepo[K: StringCodec: Tagged, C: StringCodec: Tagged, M: StringCodec: Tagged](
+class GeneralEventRepo[K: CodecJson: Tag, C: CodecJson, M: CodecJson](
     untypedRepo: UntypedEventRepo
 ) {
   def getAll(id: K): Throwable \/ Option[Events[C, M]] = {
     val aggregateTag = id.tag
-    val aggregateId = id.encode
+    val aggregateId = id.asJson.nospaces
 
     for {
-      untypedData <- untypedRepo.get(aggregateTag, aggregateId)
+      untypedData <- untypedRepo.getByKey(aggregateTag, aggregateId)
     } yield {
       for {
         creation <- untypedData.headOption
@@ -42,6 +43,6 @@ class GeneralEventRepo[K: StringCodec: Tagged, C: StringCodec: Tagged, M: String
 
     val toStore = untypedEvents.drop(alreadyPersisted.value)
 
-    untypedRepo.store(toStore)
+    untypedRepo.storeAll(toStore)
   }
 }
