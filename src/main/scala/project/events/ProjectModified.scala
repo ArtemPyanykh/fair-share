@@ -29,7 +29,7 @@ trait ProjectModifiedCodecs {
     case a @ ProjectNameModified(_) => taggedJson(nameModifiedTag) {
       Json("name" := a.name)
     }
-    case a @ ProjectStatusModified(_) => taggedJson(nameModifiedTag) {
+    case a @ ProjectStatusModified(_) => taggedJson(statusModifiedTag) {
       Json("status" := a.status)
     }
   }
