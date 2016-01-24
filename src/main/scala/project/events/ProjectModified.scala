@@ -40,11 +40,11 @@ trait ProjectModifiedCodecs {
         name <- (hc --\ "name").as[String]
       } yield ProjectNameModified(name)
     } |||
-      taggedDecode[ProjectModified](statusModifiedTag) { hc =>
-        for {
-          status <- (hc --\ "status").as[ProjectStatus]
-        } yield ProjectStatusModified(status)
-      }
+    taggedDecode[ProjectModified](statusModifiedTag) { hc =>
+      for {
+        status <- (hc --\ "status").as[ProjectStatus]
+      } yield ProjectStatusModified(status)
+    }
 
   implicit val codecJson: CodecJson[ProjectModified] = CodecJson.derived(encodeJson, decodeJson)
 }
