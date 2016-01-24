@@ -3,7 +3,6 @@ package repo
 import java.time.LocalDateTime
 
 import doobie.imports._
-import doobie.contrib.postgresql.imports._
 
 import scalaz.\/
 import scalaz.concurrent.Task

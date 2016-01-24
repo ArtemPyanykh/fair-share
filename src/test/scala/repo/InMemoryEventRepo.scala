@@ -11,7 +11,7 @@ class InMemoryEventRepo extends UntypedEventRepo {
 
   val inMemoryStore = mutable.Map[Tag, mutable.Map[Id, EventStream]]()
 
-  def storeAll(data: Vector[UntypedEventData]): Throwable \/ Unit = inMemoryStore.synchronized {
+  override def storeAll(data: Vector[UntypedEventData]): Throwable \/ Unit = inMemoryStore.synchronized {
     val headOpt = data.headOption
 
     headOpt match {
@@ -25,7 +25,7 @@ class InMemoryEventRepo extends UntypedEventRepo {
     }
   }
 
-  def getByKey(tag: String, id: String): Throwable \/ Vector[UntypedEventData] = {
+  override def getBy(tag: String, id: String): Throwable \/ Vector[UntypedEventData] = {
     inMemoryStore.getOrElse(tag, mutable.Map[Id, EventStream]()).getOrElse(id, Vector.empty).right
   }
 

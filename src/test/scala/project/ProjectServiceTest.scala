@@ -18,22 +18,37 @@ class ProjectServiceTest extends FunSpec with Matchers {
       val commands = ProjectOperationsInterpreter.ProjectOperations
     }
 
-    it("should create") {
+    it("should create, then modify name, then modify status") {
       val repo = getRepo
 
       val testId = ProjectId(UUID.randomUUID())
 
-      projectService.create(testId, "POC").run(repo)
-      projectService.modifyName(testId, "POC2", Version.one).run(repo)
+      projectService.create(testId, "TestProject").run(repo)
+      var currVersion = Version.one
+      projectService.modifyName(testId, "TestChangedName", currVersion).run(repo)
 
-      val fromRepo = repo.get(testId)
+      var fromRepo = repo.get(testId)
 
       fromRepo.fold(
         e => fail(e),
         a => {
-          a.model shouldEqual Project(testId, "POC2", ProjectStatus.Open)
+          a.model shouldEqual Project(testId, "TestChangedName", ProjectStatus.Open)
           a.persistedVersion shouldEqual Version(2)
           a.currentVersion shouldEqual Version(2)
+        }
+      )
+
+      currVersion = currVersion.next
+      projectService.modifyStatus(testId, ProjectStatus.Finished, currVersion).run(repo)
+
+      fromRepo = repo.get(testId)
+
+      fromRepo.fold(
+        e => fail(e),
+        a => {
+          a.model shouldEqual Project(testId, "TestChangedName", ProjectStatus.Finished)
+          a.persistedVersion shouldEqual Version(3)
+          a.currentVersion shouldEqual Version(3)
         }
       )
     }
@@ -41,7 +56,7 @@ class ProjectServiceTest extends FunSpec with Matchers {
 
   def getRepo: ProjectRepo = new ProjectRepo {
     val inner = new GeneralAggregateRepo[Project, ProjectCreated, ProjectModified](
-      new GeneralEventRepo[Id[Project], ProjectCreated, ProjectModified](new InMemoryEventRepo)
+      new GeneralEventRepo[Id[Project], ProjectCreated, ProjectModified](new PostgresRepo)
     )
 
     def store(a: ProjectAggregate): ValidS[Unit] = inner.storeAggregate(a)
