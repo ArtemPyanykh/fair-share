@@ -26,4 +26,10 @@ object Dependencies {
   val scalatestDeps = List(
     "org.scalatest" %% "scalatest" % scalatestVersion % Test
   )
+
+  val http4sVersion = "0.12.1"
+  val http4sDeps = List(
+    "org.http4s" %% "http4s-dsl" % http4sVersion,  // to use the core dsl
+    "org.http4s" %% "http4s-blaze-server" % http4sVersion  // to use the blaze backend
+  )
 }

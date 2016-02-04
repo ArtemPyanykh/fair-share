@@ -35,7 +35,7 @@ addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.fu
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1")
 
 libraryDependencies ++= List(
-  scalazDeps, scalatestDeps, simulacrumDeps, argonautDeps
+  scalazDeps, scalatestDeps, simulacrumDeps, argonautDeps, http4sDeps
 ).flatten
 
 scalariformSettings
