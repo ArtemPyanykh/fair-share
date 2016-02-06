@@ -26,4 +26,12 @@ object Dependencies {
   val scalatestDeps = List(
     "org.scalatest" %% "scalatest" % scalatestVersion % Test
   )
+
+  lazy val doobieVersion = "0.2.3"
+
+  val doobieDeps = List(
+    "org.tpolecat" %% "doobie-core" % doobieVersion,
+    "org.tpolecat" %% "doobie-contrib-postgresql" % doobieVersion,
+    "org.tpolecat" %% "doobie-contrib-specs2" % doobieVersion
+  )
 }

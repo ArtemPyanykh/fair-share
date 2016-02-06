@@ -29,7 +29,7 @@ trait ProjectModifiedCodecs {
     case a @ ProjectNameModified(_) => taggedJson(nameModifiedTag) {
       Json("name" := a.name)
     }
-    case a @ ProjectStatusModified(_) => taggedJson(nameModifiedTag) {
+    case a @ ProjectStatusModified(_) => taggedJson(statusModifiedTag) {
       Json("status" := a.status)
     }
   }
@@ -40,11 +40,11 @@ trait ProjectModifiedCodecs {
         name <- (hc --\ "name").as[String]
       } yield ProjectNameModified(name)
     } |||
-      taggedDecode[ProjectModified](statusModifiedTag) { hc =>
-        for {
-          status <- (hc --\ "status").as[ProjectStatus]
-        } yield ProjectStatusModified(status)
-      }
+    taggedDecode[ProjectModified](statusModifiedTag) { hc =>
+      for {
+        status <- (hc --\ "status").as[ProjectStatus]
+      } yield ProjectStatusModified(status)
+    }
 
   implicit val codecJson: CodecJson[ProjectModified] = CodecJson.derived(encodeJson, decodeJson)
 }

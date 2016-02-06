@@ -29,7 +29,7 @@ class GeneralAggregateRepo[A: Entity, C: EventC[A, ?]: CodecJson, M: EventM[A, ?
     )
   }
 
-  def storeAggregate(a: Aggregate[A, C, M]): ValidS[Unit] = {
+  def storeAggregate(a: Aggregate[A, C, M]): ValidS[Int] = {
     eventRepo.storeAll(a.model.id, a.events, a.persistedVersion).leftMap(Show[Throwable].shows)
   }
 

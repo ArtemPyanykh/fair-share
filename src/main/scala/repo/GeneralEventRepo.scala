@@ -16,19 +16,17 @@ class GeneralEventRepo[K: CodecJson: Tag, C: CodecJson, M: CodecJson](
     val aggregateId = id.asJson.nospaces
 
     for {
-      untypedData <- untypedRepo.getByKey(aggregateTag, aggregateId)
+      untypedData <- untypedRepo.getBy(aggregateTag, aggregateId)
     } yield {
       for {
         creation <- untypedData.headOption
         modification = untypedData.tail
       } yield {
         val typedCreation = UntypedEventData.toEventData[K, C](creation).fold(
-          sys.error,
-          _._2
+          sys.error, _._2
         )
         val typedModifications = modification.map(e => UntypedEventData.toEventData[K, M](e).fold(
-          sys.error,
-          _._2
+          sys.error, _._2
         ))
 
         Events(typedCreation, typedModifications)
@@ -36,7 +34,7 @@ class GeneralEventRepo[K: CodecJson: Tag, C: CodecJson, M: CodecJson](
     }
   }
 
-  def storeAll(id: K, events: Events[C, M], alreadyPersisted: Version): Throwable \/ Unit = {
+  def storeAll(id: K, events: Events[C, M], alreadyPersisted: Version): Throwable \/ Int = {
     val untypedCreation = UntypedEventData.fromEventData(id, events.creation)
     val untypedModifications = events.modifications.map(e => UntypedEventData.fromEventData(id, e))
     val untypedEvents = untypedCreation +: untypedModifications
