@@ -12,7 +12,7 @@ import scalaz.syntax.either._
 trait ProjectService {
   val commands: ProjectOperations
 
-  def create(id: ProjectId, name: String): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
+  def create(id: ProjectId, name: String): Reader[ProjectRepo, ValidS[Int]] = Reader { repo =>
     repo.get(id).swap.fold(
       _ => s"Project with id = $id already exists.".left,
       _ => {
@@ -26,7 +26,7 @@ trait ProjectService {
     )
   }
 
-  def modifyName(id: ProjectId, name: String, version: Version): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
+  def modifyName(id: ProjectId, name: String, version: Version): Reader[ProjectRepo, ValidS[Int]] = Reader { repo =>
     for {
       project <- repo.get(id)
       changed <- (commands.checkAgainstVersion(version) andThen commands.modifyName(name)).run(project)
@@ -34,7 +34,7 @@ trait ProjectService {
     } yield toRepo
   }
 
-  def modifyStatus(id: ProjectId, status: ProjectStatus, version: Version): Reader[ProjectRepo, ValidS[Unit]] = Reader { repo =>
+  def modifyStatus(id: ProjectId, status: ProjectStatus, version: Version): Reader[ProjectRepo, ValidS[Int]] = Reader { repo =>
     for {
       project <- repo.get(id)
       changed <- (commands.checkAgainstVersion(version) andThen commands.modifyStatus(status)).run(project)

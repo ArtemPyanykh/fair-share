@@ -59,7 +59,7 @@ class ProjectServiceTest extends FunSpec with Matchers {
       new GeneralEventRepo[Id[Project], ProjectCreated, ProjectModified](new PostgresRepo)
     )
 
-    def store(a: ProjectAggregate): ValidS[Unit] = inner.storeAggregate(a)
+    def store(a: ProjectAggregate): ValidS[Int] = inner.storeAggregate(a)
 
     def get(id: ProjectId): ValidS[ProjectAggregate] = inner.getAggregate(id)
   }

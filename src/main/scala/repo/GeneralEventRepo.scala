@@ -34,7 +34,7 @@ class GeneralEventRepo[K: CodecJson: Tag, C: CodecJson, M: CodecJson](
     }
   }
 
-  def storeAll(id: K, events: Events[C, M], alreadyPersisted: Version): Throwable \/ Unit = {
+  def storeAll(id: K, events: Events[C, M], alreadyPersisted: Version): Throwable \/ Int = {
     val untypedCreation = UntypedEventData.fromEventData(id, events.creation)
     val untypedModifications = events.modifications.map(e => UntypedEventData.fromEventData(id, e))
     val untypedEvents = untypedCreation +: untypedModifications

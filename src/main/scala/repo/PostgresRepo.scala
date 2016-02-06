@@ -1,24 +1,25 @@
 package repo
 
+import java.sql.Timestamp
 import java.time.LocalDateTime
 
 import doobie.imports._
 
 import scalaz.\/
 import scalaz.concurrent.Task
-import scalaz.syntax.either._
 import scalaz.std.vector._
+import scalaz.syntax.either._
 
 class PostgresRepo extends UntypedEventRepo {
   implicit val localDateTimeMeta: Meta[LocalDateTime] =
-    Meta[java.sql.Timestamp].nxmap(
+    Meta[Timestamp].nxmap(
       ts => ts.toLocalDateTime,
-      ldt => java.sql.Timestamp.valueOf(ldt)
+      ldt => Timestamp.valueOf(ldt)
     )
 
-  override def storeAll(data: Vector[UntypedEventData]): \/[Throwable, Unit] = {
-    val sql =
-      """
+  override def storeAll(data: Vector[UntypedEventData]): \/[Throwable, Int] = {
+    val req =
+      s"""
         |insert into events (
         |  aggregate_tag, aggregate_id, aggregate_version, event_data, created_at
         |) values (?, ?, ?, ?, ?)
@@ -28,9 +29,7 @@ class PostgresRepo extends UntypedEventRepo {
       "org.postgresql.Driver", "jdbc:postgresql:fair-share", "fair-share", "password"
     )
 
-    import xa.yolo._
-
-    Update[UntypedEventData](sql).updateMany(data).quick.run.right[Throwable]
+    Update[UntypedEventData](req).updateMany(data).transact(xa).run.right[Throwable]
   }
 
   override def getBy(tag: String, id: String): \/[Throwable, Vector[UntypedEventData]] = {
@@ -46,8 +45,8 @@ class PostgresRepo extends UntypedEventRepo {
         |WHERE aggregate_tag = '$tag' AND aggregate_id = '$id'
       """.stripMargin
 
-    val qr: Query0[UntypedEventData] = Query[Unit, UntypedEventData](query).toQuery0(())
+    val query1: Query0[UntypedEventData] = Query[Unit, UntypedEventData](query).toQuery0(())
 
-    qr.list.transact(xa).run.toVector.right[Throwable]
+    query1.list.transact(xa).run.toVector.right[Throwable]
   }
 }
