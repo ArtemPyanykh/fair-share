@@ -10,6 +10,12 @@ object Dependencies {
     "org.scalaz" %% "scalaz-concurrent" % scalazVersion
   )
 
+  val scalazStreamVersion = "0.8.0"
+
+  val scalazStreamDeps = List(
+    "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion
+  )
+
   val scalatestVersion = "2.2.4"
 
   val simulacrumDeps = List(

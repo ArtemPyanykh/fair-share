@@ -50,20 +50,26 @@ class ProjectCommandService {
   ): Reader[EventStore[ProjectEvent], Result[StreamElement[ProjectEvent]]] = Reader { store =>
     val events = store.reader.readKey(StreamKey(id.uuid.toString), StreamRevision.initial)
     val processor = new ProjectEventProcessor
-    val snapshot = processor.process(Void, events.map(_.data).toList)
-    snapshot match {
-      case Healthy(project) =>
-        val writeResult = store.writer.write(
-          StreamKey(id.uuid.toString), revision, NameModified(name)
-        )
-        writeResult match {
-          case WriteSuccess(el) => el.right
-          case WriteFailure(el) =>
-            s"Trying to act on an outdated data. Revision ${revision} was created at ${el.createdAt}".left
-        }
-      case _ => s"Project with id ${id.uuid.toString} doesn't exist".left
+    if (isNameValid(name)) {
+      val snapshot = processor.process(Void, events.map(_.data).toList)
+      snapshot match {
+        case Healthy(project) =>
+          val writeResult = store.writer.write(
+            StreamKey(id.uuid.toString), revision, NameModified(name)
+          )
+          writeResult match {
+            case WriteSuccess(el) => el.right
+            case WriteFailure(el) =>
+              s"Trying to act on an outdated data. Revision ${revision} was created at ${el.createdAt}".left
+          }
+        case _ => s"Project with id ${id.uuid.toString} doesn't exist".left
+      }
+    } else {
+      "Name is empty".left
     }
   }
+
+  def validateName(name: String): Result[String] = if (!name.isEmpty) name.right else "Name is empty".left
 }
 
 case class ProjectView(id: Project.Id, name: String)

@@ -51,7 +51,7 @@ object App {
     case req @ GET -> Root / "list" =>
       Ok(pvs.list.map {
         case (id, view) =>
-          s"${id.uuid.toString}, ${view.name}"
+          s"This is: ${id.uuid.toString}, ${view.name}"
       }.mkString("\n"))
   }
 

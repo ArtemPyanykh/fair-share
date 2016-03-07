@@ -3,7 +3,10 @@ package playground
 import java.time.LocalDateTime
 import scala.collection.mutable
 import scalaz.Order
+import scalaz.concurrent.Task
+import scalaz.stream.async.mutable.Queue
 import scalaz.syntax.order._
+import scalaz.stream.Process
 
 case class SequenceNumber(num: Long) extends AnyVal
 
@@ -36,6 +39,23 @@ trait StreamReader[E] {
   def readKey(key: StreamKey, from: StreamRevision): Vector[StreamElement[E]]
 }
 
+trait ProcessStreamReader[F[_], E] {
+  def read(from: SequenceNumber): Process[F, StreamElement[E]]
+
+  def readUpdating(from: SequenceNumber): Process[F, StreamElement[E]]
+}
+
+class InMemoryProcessStreamReader[E](val store: mutable.ArrayBuffer[StreamElement[E]]) extends ProcessStreamReader[Task, E] {
+  @transient var consumers: List[Queue[StreamElement[E]]] = Nil
+  @transient var curStoreLen = store.length
+
+  def read(from: SequenceNumber): Process[Task, StreamElement[E]] = {
+    Process.emitAll(store).toSource
+  }
+
+  def readUpdating(from: SequenceNumber): Process[Task, StreamElement[E]] = ???
+}
+
 trait StreamWriter[E] {
   def write(key: StreamKey, expectedRev: StreamRevision, data: E): WriteResult[E]
 }
@@ -43,7 +63,6 @@ trait StreamWriter[E] {
 case class EventStore[E](reader: StreamReader[E], writer: StreamWriter[E])
 
 sealed trait WriteResult[E]
-
 case class WriteSuccess[E](committedEl: StreamElement[E]) extends WriteResult[E]
 case class WriteFailure[E](conflictingEl: StreamElement[E]) extends WriteResult[E]
 
