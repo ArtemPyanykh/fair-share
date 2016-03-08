@@ -1,89 +1,74 @@
 package playground
 
 import java.time.LocalDateTime
+
 import scala.collection.mutable
 import scalaz.Order
 import scalaz.concurrent.Task
-import scalaz.stream.async.mutable.Queue
-import scalaz.syntax.order._
 import scalaz.stream.Process
+import scalaz.syntax.order._
 
-case class SequenceNumber(num: Long) extends AnyVal
-
-object SequenceNumber {
-  def initial: SequenceNumber = SequenceNumber(0)
-
-  implicit val order: Order[SequenceNumber] = Order.fromScalaOrdering[Long].contramap(_.num)
-}
-
-case class StreamKey(key: String) extends AnyVal
-
-case class StreamRevision(revision: Long) extends AnyVal
-
-object StreamRevision {
-  def initial: StreamRevision = StreamRevision(0)
-
-  implicit val order: Order[StreamRevision] = Order.fromScalaOrdering[Long].contramap(_.revision)
-}
-
-case class StreamElement[E](
-  seqNr: SequenceNumber,
-  key: StreamKey,
-  revision: StreamRevision,
+case class Fact[E](
+  number: FactNumber,
+  subject: FactSubject,
+  revision: SubjectRevision,
   data: E,
   createdAt: LocalDateTime
 )
 
-trait StreamReader[E] {
-  def readAll(from: SequenceNumber): Vector[StreamElement[E]]
-  def readKey(key: StreamKey, from: StreamRevision): Vector[StreamElement[E]]
+case class FactNumber(num: Int) extends AnyVal {
+  def next: FactNumber = FactNumber(num + 1)
 }
 
-trait ProcessStreamReader[F[_], E] {
-  def read(from: SequenceNumber): Process[F, StreamElement[E]]
+object FactNumber {
+  def initial: FactNumber = FactNumber(0)
 
-  def readUpdating(from: SequenceNumber): Process[F, StreamElement[E]]
+  implicit val order: Order[FactNumber] = Order.fromScalaOrdering[Int].contramap(_.num)
 }
 
-class InMemoryProcessStreamReader[E](val store: mutable.ArrayBuffer[StreamElement[E]]) extends ProcessStreamReader[Task, E] {
-  @transient var consumers: List[Queue[StreamElement[E]]] = Nil
-  @transient var curStoreLen = store.length
+case class FactSubject(key: String) extends AnyVal
 
-  def read(from: SequenceNumber): Process[Task, StreamElement[E]] = {
-    Process.emitAll(store).toSource
+case class SubjectRevision(revision: Int) extends AnyVal
+
+object SubjectRevision {
+  def initial: SubjectRevision = SubjectRevision(0)
+
+  implicit val order: Order[SubjectRevision] = Order.fromScalaOrdering[Int].contramap(_.revision)
+}
+
+trait Journal[E] {
+  def readAll(from: FactNumber, to: FactNumber): Process[Task, Fact[E]]
+  def readSubject(key: FactSubject): Process[Task, Fact[E]]
+  def write(key: FactSubject, revision: SubjectRevision, data: E): Task[WriteResult[E]]
+}
+
+sealed trait WriteResult[+E]
+case class WriteSuccess[E](committedEl: Fact[E]) extends WriteResult[E]
+case class WriteFailure(cause: String) extends WriteResult[Nothing]
+
+class InMemoryJournal[E](underlying: mutable.Buffer[Fact[E]]) extends Journal[E] {
+  private var curNumber = FactNumber(underlying.length)
+  private val lookup = mutable.Map[(FactSubject, SubjectRevision), FactNumber]()
+
+  def readAll(from: FactNumber, to: FactNumber): Process[Task, Fact[E]] =
+    Process.emitAll(underlying.filter(e => e.number >= from && e.number <= to))
+
+  def readSubject(key: FactSubject): Process[Task, Fact[E]] = {
+    Process.emitAll(underlying.filter(e => e.subject == key))
   }
 
-  def readUpdating(from: SequenceNumber): Process[Task, StreamElement[E]] = ???
-}
-
-trait StreamWriter[E] {
-  def write(key: StreamKey, expectedRev: StreamRevision, data: E): WriteResult[E]
-}
-
-case class EventStore[E](reader: StreamReader[E], writer: StreamWriter[E])
-
-sealed trait WriteResult[E]
-case class WriteSuccess[E](committedEl: StreamElement[E]) extends WriteResult[E]
-case class WriteFailure[E](conflictingEl: StreamElement[E]) extends WriteResult[E]
-
-class InMemoryStreamReader[E](val storage: mutable.ArrayBuffer[StreamElement[E]]) extends StreamReader[E] {
-  def readAll(from: SequenceNumber): Vector[StreamElement[E]] =
-    storage.filter(_.seqNr >= from).toVector
-
-  def readKey(key: StreamKey, from: StreamRevision): Vector[StreamElement[E]] =
-    storage.filter(_.key == key).filter(_.revision >= from).toVector
-}
-
-class InMemoryStreamWriter[E](val storage: mutable.ArrayBuffer[StreamElement[E]]) extends StreamWriter[E] {
-  def write(key: StreamKey, expectedRev: StreamRevision, data: E): WriteResult[E] = storage.synchronized {
-    val existing = storage.find(el => el.key == key && el.revision == expectedRev)
-    existing match {
-      case None =>
-        val nextSeqNr = SequenceNumber((storage.length + 1).toLong)
-        val el = StreamElement(nextSeqNr, key, expectedRev, data, LocalDateTime.now())
-        storage += el
-        WriteSuccess(el)
-      case Some(el) => WriteFailure(el)
+  def write(key: FactSubject, revision: SubjectRevision, data: E): Task[WriteResult[E]] = Task.delay {
+    this.synchronized {
+      lookup.get((key, revision)) match {
+        case None =>
+          lookup += (key, revision) -> curNumber
+          val newEl = Fact(curNumber, key, revision, data, LocalDateTime.now())
+          underlying += newEl
+          curNumber = curNumber.next
+          WriteSuccess(newEl)
+        case Some(seqNr) =>
+          WriteFailure(s"Stream element ($key, $revision) already exists")
+      }
     }
   }
 }

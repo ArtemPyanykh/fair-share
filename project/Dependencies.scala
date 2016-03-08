@@ -10,7 +10,7 @@ object Dependencies {
     "org.scalaz" %% "scalaz-concurrent" % scalazVersion
   )
 
-  val scalazStreamVersion = "0.8.0"
+  val scalazStreamVersion = "0.8.+"
 
   val scalazStreamDeps = List(
     "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion
@@ -25,8 +25,7 @@ object Dependencies {
   val argonautVersion = "6.1"
 
   val argonautDeps = List(
-    "io.argonaut" %% "argonaut" % argonautVersion,
-    "com.github.alexarchambault" %% s"argonaut-shapeless_$argonautVersion" % "1.0.0-SNAPSHOT"
+    "io.argonaut" %% "argonaut" % argonautVersion
   )
 
   val scalatestDeps = List(
