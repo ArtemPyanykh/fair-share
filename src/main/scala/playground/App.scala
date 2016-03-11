@@ -3,6 +3,9 @@ package playground
 import java.util.UUID
 import java.util.concurrent.{ ConcurrentHashMap, Executors }
 
+import command.project.{ProjectCommandService, ProjectEvent, Project}
+import eventsourcing.journals.{PollingJournalReader$, InMemoryJournal}
+import eventsourcing.Entry
 import org.http4s.HttpService
 import org.http4s.server.blaze.BlazeBuilder
 
@@ -18,16 +21,16 @@ object App {
 
   val executor = Executors.newScheduledThreadPool(1)
   val updateFrequency = 100.millis
-  val storage = mutable.ArrayBuffer[Fact[ProjectEvent]]()
+  val storage = mutable.ArrayBuffer[Entry[ProjectEvent]]()
   val journal = new InMemoryJournal(storage)
-  val reader = new StreamingJournalReader(journal, updateFrequency)(executor)
+  val reader = new PollingJournalReader(journal, updateFrequency)(executor)
 
   val projectList = new ConcurrentHashMap[Project.Id, String]()
 
-  def updateProjectList(fact: Fact[ProjectEvent]): Unit = {
+  def updateProjectList(fact: Entry[ProjectEvent]): Unit = {
     val projectId = Project.Id(UUID.fromString(fact.subject.key))
 
-    val projectName = fact.data match {
+    val projectName = fact.event match {
       case ProjectEvent.Created(_, name, _) => Some(name)
       case ProjectEvent.NameModified(name) => Some(name)
       case _ => None
@@ -39,7 +42,7 @@ object App {
   }
 
   val listUpdater = reader.readUpdating.to(
-    sink.lift[Task, Fact[ProjectEvent]] {
+    sink.lift[Task, Entry[ProjectEvent]] {
       fact =>
         Task.delay {
           updateProjectList(fact)
