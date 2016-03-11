@@ -2,16 +2,16 @@ package eventsourcing.journals
 
 import java.util.concurrent.ScheduledExecutorService
 
-import eventsourcing.{Entry, EntryNumber, Journal}
+import eventsourcing.{ Entry, EntryNumber, Journal }
 
 import scala.concurrent.duration._
-import scalaz.concurrent.{Strategy, Task}
+import scalaz.concurrent.{ Strategy, Task }
 import scalaz.stream._
 
 class PollingJournalReader[E](
-  underlying: Journal[E],
-  updateFrequency: FiniteDuration,
-  bufferSize: Int = PollingJournalReader.DefaultBufferSize
+    underlying: Journal[E],
+    updateFrequency: FiniteDuration,
+    bufferSize: Int = PollingJournalReader.DefaultBufferSize
 )(implicit executor: ScheduledExecutorService) {
   var alreadyReadEls: Int = 0
   val bus = async.boundedQueue[Entry[E]](bufferSize)(Strategy.Executor(executor))

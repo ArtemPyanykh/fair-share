@@ -17,13 +17,13 @@ object EntryProcessor {
   def attemptCreate[A](f: => A): Snapshot[A] => Snapshot[A] = {
     case x @ Ill(_, _) => x
     case Void => Healthy(f, Revision.initial)
-    case x @ Healthy(_) => Ill(x, s"Tried to create already created.")
+    case x @ Healthy(_, _) => Ill(x, s"Tried to create already created.")
   }
 
   def attemptModify[A](f: A => A): Snapshot[A] => Snapshot[A] = {
     case x @ Ill(_, _) => x
     case x @ Void => Ill(x, s"Tried to modify not yet created.")
-    case x @ Healthy(model) => Healthy(f(x.model), x.revision.next)
+    case Healthy(model, revision) => Healthy(f(model), revision.next)
   }
 
   def basedOnEvent[A, E](eventF: E => Snapshot[A] => Snapshot[A]): (Entry[E], Snapshot[A]) => Snapshot[A] =

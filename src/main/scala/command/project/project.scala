@@ -5,7 +5,7 @@ import java.util.UUID
 import eventsourcing._
 
 import scalaz.syntax.either._
-import scalaz.{Reader, \/}
+import scalaz.{ Reader, \/ }
 
 case class Project(id: Project.Id, name: String, motto: String)
 
@@ -52,7 +52,7 @@ class ProjectCommandService {
     val processor = new ProjectEntryProcessor
     val snapshot = processor.processEntries(Void, events.toList)
     snapshot match {
-      case Healthy(project) =>
+      case Healthy(project, _) =>
         val writeResult = store.write(
           Subject(id.uuid.toString), revision, NameModified(name)
         ).run
