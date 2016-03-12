@@ -35,7 +35,7 @@ addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.fu
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1")
 
 libraryDependencies ++= List(
-  scalazDeps, scalatestDeps, simulacrumDeps, argonautDeps, http4sDeps
+  scalazDeps, scalatestDeps, simulacrumDeps, http4sDeps, shapelessDeps, argonautDeps
 ).flatten
 
 scalariformSettings
@@ -49,3 +49,5 @@ formatCode := {
   ScalariformKeys.format.in(Compile).value
   ScalariformKeys.format.in(Test).value
 }
+
+cancelable in Global := true

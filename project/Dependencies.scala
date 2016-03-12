@@ -25,16 +25,23 @@ object Dependencies {
   val argonautVersion = "6.1"
 
   val argonautDeps = List(
-    "io.argonaut" %% "argonaut" % argonautVersion
+    "io.argonaut" %% "argonaut" % argonautVersion,
+    "com.github.alexarchambault" %% s"argonaut-shapeless_$argonautVersion" % "0.3.1"
   )
 
   val scalatestDeps = List(
     "org.scalatest" %% "scalatest" % scalatestVersion % Test
   )
 
-  val http4sVersion = "0.12.1"
+  val http4sVersion = "0.12.+"
   val http4sDeps = List(
     "org.http4s" %% "http4s-dsl" % http4sVersion,  // to use the core dsl
-    "org.http4s" %% "http4s-blaze-server" % http4sVersion  // to use the blaze backend
+    "org.http4s" %% "http4s-blaze-server" % http4sVersion,  // to use the blaze backend
+    "org.http4s" %% "http4s-argonaut" % http4sVersion  // to auto-derive EntityCoders from Argonaut JSON codecs
+  )
+
+  val shapelessVersion = "2.3.+"
+  val shapelessDeps = List(
+    "com.chuusai" %% "shapeless" % shapelessVersion
   )
 }

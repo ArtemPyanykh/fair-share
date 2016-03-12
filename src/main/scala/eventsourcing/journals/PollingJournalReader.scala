@@ -2,7 +2,7 @@ package eventsourcing.journals
 
 import java.util.concurrent.ScheduledExecutorService
 
-import eventsourcing.{ Entry, EntryNumber, Journal }
+import eventsourcing._
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{ Strategy, Task }
@@ -10,20 +10,20 @@ import scalaz.stream._
 
 class PollingJournalReader[E](
     underlying: Journal[E],
-    updateFrequency: FiniteDuration,
+    pollingFrequency: FiniteDuration,
     bufferSize: Int = PollingJournalReader.DefaultBufferSize
 )(implicit executor: ScheduledExecutorService) {
   var alreadyReadEls: Int = 0
-  val bus = async.boundedQueue[Entry[E]](bufferSize)(Strategy.Executor(executor))
+  val bus = async.boundedQueue[Fact[E]](bufferSize)(Strategy.Executor(executor))
 
-  def listenUpdates: Process[Task, Unit] = getUnreadRetry(bufferSize, updateFrequency).to(bus.enqueue)
+  def listenUpdates: Process[Task, Unit] = getUnreadRetry(bufferSize, pollingFrequency).to(bus.enqueue)
 
-  def readUpdates: Process[Task, Entry[E]] = bus.dequeue
+  def readUpdates: Process[Task, Fact[E]] = bus.dequeue
 
-  private[this] def queryUnderlying(from: Int, limit: Int): Task[Vector[Entry[E]]] =
-    underlying.readAll(EntryNumber(alreadyReadEls), EntryNumber(alreadyReadEls + limit - 1)).runLog
+  private[this] def queryUnderlying(from: Int, limit: Int): Task[Vector[Fact[E]]] =
+    underlying.readAll(IndexNumber(alreadyReadEls), IndexNumber(alreadyReadEls + limit - 1)).runLog
 
-  private[this] def getUnreadRetry(limit: Int, retryFreq: FiniteDuration): Process[Task, Entry[E]] =
+  private[this] def getUnreadRetry(limit: Int, retryFreq: FiniteDuration): Process[Task, Fact[E]] =
     Process.await(queryUnderlying(alreadyReadEls, limit)) {
       got =>
         if (got.nonEmpty) {

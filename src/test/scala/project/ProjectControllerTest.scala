@@ -8,13 +8,12 @@ import project.events.{ ProjectModified, ProjectCreated }
 import project.model.{ ProjectStatus, Project }
 import project.operations.ProjectOperationsInterpreter
 import repo._
-import util.Id
 import util.ids._
 import util.types._
 
-class ProjectServiceTest extends FunSpec with Matchers {
+class ProjectControllerTest extends FunSpec with Matchers {
   describe("ProjectServiceTest") {
-    val projectService = new ProjectService {
+    val projectService = new ProjectController {
       val commands = ProjectOperationsInterpreter.ProjectOperations
     }
 
@@ -41,7 +40,7 @@ class ProjectServiceTest extends FunSpec with Matchers {
 
   def getRepo: ProjectRepo = new ProjectRepo {
     val inner = new GeneralAggregateRepo[Project, ProjectCreated, ProjectModified](
-      new GeneralEventRepo[Id[Project], ProjectCreated, ProjectModified](new InMemoryEventRepo)
+      new GeneralEventRepo[AggregateId[Project], ProjectCreated, ProjectModified](new InMemoryEventRepo)
     )
 
     def store(a: ProjectAggregate): ValidS[Unit] = inner.storeAggregate(a)
