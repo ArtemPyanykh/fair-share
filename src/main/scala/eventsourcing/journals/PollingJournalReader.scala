@@ -21,7 +21,7 @@ class PollingJournalReader[E](
   def readUpdates: Process[Task, Fact[E]] = bus.dequeue
 
   private[this] def queryUnderlying(from: Int, limit: Int): Task[Vector[Fact[E]]] =
-    underlying.readAll(IndexNumber(alreadyReadEls), IndexNumber(alreadyReadEls + limit - 1)).runLog
+    underlying.readAll(Index(alreadyReadEls), Index(alreadyReadEls + limit - 1)).runLog
 
   private[this] def getUnreadRetry(limit: Int, retryFreq: FiniteDuration): Process[Task, Fact[E]] =
     Process.await(queryUnderlying(alreadyReadEls, limit)) {

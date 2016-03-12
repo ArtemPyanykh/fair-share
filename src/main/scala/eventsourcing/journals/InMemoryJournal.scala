@@ -11,11 +11,11 @@ import scalaz.syntax.order._
 
 class InMemoryJournal[E] extends Journal[E] {
   private var store = mutable.Buffer.empty[Fact[E]]
-  private val lookup = mutable.Map[(Subject, Revision), IndexNumber]()
+  private val lookup = mutable.Map[(Subject, Revision), Index]()
   private var entriesCount = 0
 
-  def readAll(from: IndexNumber, to: IndexNumber): Process[Task, Fact[E]] =
-    Process.emitAll(store.filter(e => e.number >= from && e.number <= to))
+  def readAll(from: Index, to: Index): Process[Task, Fact[E]] =
+    Process.emitAll(store.filter(e => e.index >= from && e.index <= to))
 
   def readSubject(key: Subject): Process[Task, Fact[E]] = {
     Process.emitAll(store.filter(e => e.subject == key))
@@ -25,7 +25,7 @@ class InMemoryJournal[E] extends Journal[E] {
     this.synchronized {
       lookup.get((key, revision)) match {
         case None =>
-          val nextEntryNumber = IndexNumber(entriesCount)
+          val nextEntryNumber = Index(entriesCount)
           val newEl = Fact(nextEntryNumber, key, revision, data, LocalDateTime.now())
 
           lookup += (key, revision) -> nextEntryNumber

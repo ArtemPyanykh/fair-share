@@ -6,7 +6,7 @@ import scalaz.concurrent.Task
 import scalaz.stream._
 
 trait Journal[E] extends JournalFunctions[E] {
-  def readAll(from: IndexNumber, to: IndexNumber): Process[Task, Fact[E]]
+  def readAll(from: Index, to: Index): Process[Task, Fact[E]]
 
   def readSubject(key: Subject): Process[Task, Fact[E]]
 

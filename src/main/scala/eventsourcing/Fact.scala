@@ -7,21 +7,21 @@ import argonaut.EncodeJson
 import scalaz.Order
 
 case class Fact[E](
-  number: IndexNumber,
+  index: Index,
   subject: Subject,
   revision: Revision,
   event: E,
   createdAt: LocalDateTime
 )
 
-case class IndexNumber(num: Int) extends AnyVal {
-  def next: IndexNumber = IndexNumber(num + 1)
+case class Index(num: Int) extends AnyVal {
+  def next: Index = Index(num + 1)
 }
 
-object IndexNumber {
-  def initial: IndexNumber = IndexNumber(0)
+object Index {
+  def initial: Index = Index(0)
 
-  implicit val order: Order[IndexNumber] = Order.fromScalaOrdering[Int].contramap(_.num)
+  implicit val order: Order[Index] = Order.fromScalaOrdering[Int].contramap(_.num)
 }
 
 case class Subject(key: String) extends AnyVal
