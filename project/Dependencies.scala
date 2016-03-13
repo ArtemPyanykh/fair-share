@@ -1,6 +1,9 @@
 import sbt._
+import sbt.Keys._
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 
 object Dependencies {
+
   import sbt.Test
 
   val scalazVersion = "7.1.+"
@@ -35,13 +38,24 @@ object Dependencies {
 
   val http4sVersion = "0.12.+"
   val http4sDeps = List(
-    "org.http4s" %% "http4s-dsl" % http4sVersion,  // to use the core dsl
-    "org.http4s" %% "http4s-blaze-server" % http4sVersion,  // to use the blaze backend
-    "org.http4s" %% "http4s-argonaut" % http4sVersion  // to auto-derive EntityCoders from Argonaut JSON codecs
+    "org.http4s" %% "http4s-dsl" % http4sVersion, // to use the core dsl
+    "org.http4s" %% "http4s-blaze-server" % http4sVersion, // to use the blaze backend
+    "org.http4s" %% "http4s-argonaut" % http4sVersion // to auto-derive EntityCoders from Argonaut JSON codecs
   )
 
   val shapelessVersion = "2.3.+"
   val shapelessDeps = List(
     "com.chuusai" %% "shapeless" % shapelessVersion
+  )
+
+  val loggingDeps = Seq(
+    "org.slf4j" % "slf4j-api" % "1.7.18",
+    "ch.qos.logback" % "logback-classic" % "1.1.6",
+    "com.typesafe.scala-logging" % "scala-logging_2.11" % "3.1.0"
+  )
+
+  val widokVersion = "0.2.+"
+  val frontendDepsCombined = libraryDependencies ++= Seq(
+    "io.github.widok" %%% "widok" % widokVersion
   )
 }
