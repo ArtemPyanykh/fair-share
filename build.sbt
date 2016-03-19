@@ -79,7 +79,20 @@ lazy val frontend = project.in(file("frontend"))
   .enablePlugins(SbtWeb)
   .dependsOn(js)
   .settings(
-    sourceGenerators in Assets <+= (fastOptJS in (js, Compile)).map(wrapped => Seq(wrapped.data))
+    resourceGenerators in Assets <+= Def.task {
+      val appJs = (fastOptJS in (js, Compile)).value
+      appJs.data :: Nil
+    },
+    (mappings in (Assets, resources)) <<= (mappings in (Assets, resources)).map { theMappings =>
+      theMappings.map { case (file, string) =>
+          string match {
+            case "fair-share-fastopt.js" => file -> (s"js/$string")
+            case _ => file -> string
+          }
+      }
+    },
+    compile in Compile <<= (compile in Compile).dependsOn(WebKeys.assets in Assets),
+    unmanagedClasspath in Compile += (WebKeys.public in Assets).value
   )
 
 lazy val js = project.in(file("frontend/js"))
@@ -88,4 +101,3 @@ lazy val js = project.in(file("frontend/js"))
   .settings(scalaJSDepsCombined)
   .enablePlugins(ScalaJSPlugin)
   .settings(jsSettings)
-
