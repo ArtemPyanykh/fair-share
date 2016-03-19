@@ -75,8 +75,17 @@ lazy val backend = project.in(file("backend"))
 
 lazy val frontend = project.in(file("frontend"))
   .settings(buildSettings)
-  .settings(scalacOptions ++= compilerOptions ++ Seq("-Xelide-below", annotation.elidable.ALL.toString))
   .settings(libraryDependencies ++= compilerPlugins)
-  .settings(frontendDepsCombined)
+  .enablePlugins(SbtWeb)
+  .dependsOn(js)
+  .settings(
+    sourceGenerators in Assets <+= (fastOptJS in (js, Compile)).map(wrapped => Seq(wrapped.data))
+  )
+
+lazy val js = project.in(file("frontend/js"))
+  .settings(buildSettings)
+  .settings(scalacOptions ++= compilerOptions ++ Seq("-Xelide-below", annotation.elidable.ALL.toString))
+  .settings(scalaJSDepsCombined)
   .enablePlugins(ScalaJSPlugin)
   .settings(jsSettings)
+

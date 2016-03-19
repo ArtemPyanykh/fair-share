@@ -55,7 +55,7 @@ object Dependencies {
   )
 
   val widokVersion = "0.2.+"
-  val frontendDepsCombined = libraryDependencies ++= Seq(
+  val scalaJSDepsCombined = libraryDependencies ++= Seq(
     "io.github.widok" %%% "widok" % widokVersion
   )
 }
