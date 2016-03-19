@@ -54,6 +54,10 @@ object Dependencies {
     "com.typesafe.scala-logging" % "scala-logging_2.11" % "3.1.0"
   )
 
+  val configDeps = List(
+    "com.typesafe" % "config" % "1.3.0"
+  )
+
   val widokVersion = "0.2.+"
   val frontendDepsCombined = libraryDependencies ++= Seq(
     "io.github.widok" %%% "widok" % widokVersion
