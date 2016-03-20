@@ -44,7 +44,8 @@ lazy val compilerPlugins = Seq(
 
 lazy val jsSettings = Seq(
   scalaJSUseRhino in Global := false,
-  persistLauncher := true
+  persistLauncher in Test := false,
+  persistLauncher in Compile := true
 )
 
 scalariformSettings
