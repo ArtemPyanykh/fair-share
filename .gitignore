@@ -1,13 +1,17 @@
-/RUNNING_PID
-/logs/
+# Results of the build
+target/
+lib_managed/
+src_managed/
+dist/*
+*.class
+
+# Results of the build of the build
+project/boot/
 /project/*-shim.sbt
 /project/project/
-/project/target/
-/target/
+project/plugins/project/
+
+# Other
+/RUNNING_PID
+/logs/
 .idea
-/frontend/target/
-/project/fairshare/frontend/project/project/
-/project/fairshare/frontend/project/target/
-/backend/target/
-/project/fairshare/backend/project/project/
-/project/fairshare/backend/project/target/
