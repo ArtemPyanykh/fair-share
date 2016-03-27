@@ -14,7 +14,6 @@ resolvers ++= List(
 )
 
 lazy val buildSettings = Seq(
-  name := """fair-share""",
   version := "1.0-SNAPSHOT",
   scalaVersion := "2.11.8"
 )
@@ -64,6 +63,10 @@ cancelable in Global := true
 
 lazy val root = project.in(file("."))
   .aggregate(backend, frontend)
+  .settings(
+    name := "fair-share"
+  )
+  .settings(buildSettings)
 
 lazy val backend = project.in(file("backend"))
   .settings(buildSettings)
