@@ -10,7 +10,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 
 
-class PostgresJournal[E] extends Journal[E] {
+class PostgresJournal[E](implicit ev: Atom[E]) extends Journal[E] {
   override def readAll(from: Index, to: Index): Process[Task, Fact[E]] = ???
 
   override def readSubject(key: Subject): Process[Task, Fact[E]] = ???
@@ -25,7 +25,7 @@ class PostgresJournal[E] extends Journal[E] {
     val q =
       sql"""
          |SELECT
-         |  index, subject, revision, eventData, createdAt
+         |  index, subject, revision, event_data, created_at
          |FROM events
          |WHERE subject = '$key' AND revision = '$revision'
       """.query[Fact[E]]
