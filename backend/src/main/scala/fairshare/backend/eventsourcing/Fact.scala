@@ -1,7 +1,8 @@
 package fairshare.backend.eventsourcing
 
+import java.sql.Timestamp
 import java.time.LocalDateTime
-
+import doobie.imports._
 import argonaut.EncodeJson
 
 import scalaz.Order
@@ -13,6 +14,16 @@ case class Fact[E](
   event: E,
   createdAt: LocalDateTime
 )
+
+object Fact {
+  implicit def composite[E](implicit ev: Atom[E]): Composite[Fact[E]] = ???
+
+  implicit val localDateTimeMeta: Meta[LocalDateTime] =
+    Meta[Timestamp].nxmap(
+      ts => ts.toLocalDateTime,
+      ldt => Timestamp.valueOf(ldt)
+    )
+}
 
 case class Index(num: Int) extends AnyVal {
   def next: Index = Index(num + 1)
