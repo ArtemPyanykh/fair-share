@@ -1,14 +1,13 @@
 package fairshare.backend
 
-import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
-import eventsourcing.journals.{InMemoryJournal, PollingJournalReader}
+import fairshare.backend.eventsourcing.journals.{InMemoryJournal, PollingJournalReader}
+import fairshare.backend.project.{ProjectCommandHandler, ProjectController, ProjectEvent, ProjectQueryHandler}
 import org.http4s.server.blaze.BlazeBuilder
-import project.{ProjectCommandHandler, ProjectController, ProjectEvent, ProjectQueryHandler}
 
 object App extends LazyLogging {
   def main(args: Array[String]): Unit = {
-    val port = ConfigFactory.load("server").getInt("serverInfo.port")
+    val port = Globals.serverCfg.getInt("serverInfo.port")
 
     val projectJournal = InMemoryJournal[ProjectEvent]
     val projectPollingReader = new PollingJournalReader(projectJournal, Globals.pollingFrequency)(Globals.executor)

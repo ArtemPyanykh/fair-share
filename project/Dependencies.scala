@@ -58,6 +58,13 @@ object Dependencies {
     "com.typesafe" % "config" % "1.3.0"
   )
 
+  lazy val doobieVersion = "0.2.3"
+  val doobieDeps = List(
+    "org.tpolecat" %% "doobie-core" % doobieVersion,
+    "org.tpolecat" %% "doobie-contrib-postgresql" % doobieVersion,
+    "org.tpolecat" %% "doobie-contrib-specs2" % doobieVersion
+  )
+
   val widokVersion = "0.2.+"
   val frontendDepsCombined = libraryDependencies ++= Seq(
     "io.github.widok" %%% "widok" % widokVersion

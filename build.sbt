@@ -73,7 +73,7 @@ lazy val backend = project.in(file("backend"))
   .settings(scalacOptions ++= compilerOptions)
   .settings(
     libraryDependencies ++=
-      scalazDeps ++ scalatestDeps ++ simulacrumDeps ++ http4sDeps ++ shapelessDeps ++ argonautDeps ++ loggingDeps ++ configDeps
+      scalazDeps ++ scalatestDeps ++ simulacrumDeps ++ http4sDeps ++ shapelessDeps ++ argonautDeps ++ loggingDeps ++ configDeps ++ doobieDeps
   )
   .settings(libraryDependencies ++= compilerPlugins)
 
