@@ -15,3 +15,5 @@ project/plugins/project/
 /RUNNING_PID
 /logs/
 .idea
+.ensime
+.ensime_cache/
